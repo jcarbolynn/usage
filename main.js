@@ -1,4 +1,4 @@
-var SpreadSheetID = "1diGFcUshSjcyVml01cbt5GjsQm9PC0m2YbSFYcdlPa0"
+var SpreadSheetID = "1YHMh3YT-BcfgtntT1rLHa3f5D-KJDu94ILdy2v2LWaw"
 var SheetNames = ["Sheet1"]
 var EmailSheet = "emails"
 
@@ -8,22 +8,17 @@ function updateUsage(){
   var ss = SpreadsheetApp.openById(SpreadSheetID);
   var inventoryUsage = ss.getSheetByName(SheetNames);
 
-  // prev_total = inventoryUsage.getRange('E2:E12').getValues();
-  // new_total = inventoryUsage.getRange('B2:B12').getValues();
-  // really? i can only get to this info row by row??
-  // console.log('just totals from inventory usage google sheet');
-  // // updated_usage = getInventory(inventoryUsage);
-  // console.log(getInventory(inventoryUsage)[0]['total']);
 
   usage_array = getInventory(inventoryUsage);
   updated_usage = usage_array;
   
   // // see 117
-  // usage_dict = rowToDict(inventoryUsage, 2);
-  // console.log('DICTIONARY FROM ROW 2')
+  // usage_dict = rowsToDict(inventoryUsage, 2, 12);
   // console.log(usage_dict);
 
 
+
+//  /** 
   //just do it all in usage_array and then move usage_array to google sheet
   for (var i=0; i<usage_array.length; i++){
     // //checking: what is usage_array
@@ -72,7 +67,23 @@ function updateUsage(){
 
     console.log('after');
     console.log(updated_usage);
-    console.log(updated_dict);
+    // console.log(updated_dict);
+
+    var headings = ['item', 'total','previous','new', 'usage'];
+    var output = [];
+
+    updated_usage.forEach(item => {
+      output.push(headings.map(heading => {
+        return item[heading]
+      }));
+    })
+
+    if (output.length) {
+      // Add the headings - delete this next line if headings not required
+      output.unshift(headings);
+      ss.getSheetByName("Sheet1").getRange(1, 1, output.length, output[0].length).setValues(output);
+    }
+      
 
 
     // put updated_usage into google sheet
@@ -86,12 +97,7 @@ function updateUsage(){
     // inventoryUsage.getRange('D'+j+':D'+j).setValues(inventoryUsage.getRange('E'+j+':E'+j).getValues());
 
   }
-
-  // // last step
-  // // TODO: only happen if total != new total, check each row?? more for loops??
-  // // sets previous total as new total and new total as total
-  // inventoryUsage.getRange('D2:D12').setValues(inventoryUsage.getRange('E2:E12').getValues());
-  // inventoryUsage.getRange('E2:E12').setValues(inventoryUsage.getRange('B2:B12').getValues());
+  //  */
 
 
   var emailInfo = ss.getSheetByName(EmailSheet);
@@ -107,26 +113,46 @@ function updateUsage(){
   }
 
 // if first of month send email about usage
-// 19 for testing purposes so it will run today
   if (now.getDate() == 1){
     // does send as one chunk but UGLY
     for (var j=0; j<email_json.length; j++){
-      MailApp.sendEmail({to: email_json[j].email, subject: "Usage Report " + month + "/" + year, htmlBody: JSON.stringify(inventory), noReply:true})
+      MailApp.sendEmail({to: email_json[j].email, subject: "Usage Report " + month + "/" + year, htmlBody: JSON.stringify(updated_usage), noReply:true})
     }
   }
 }
 
-// https://gist.github.com/dangtrinhnt/320e425b26ac3c5ca987
-function rowToDict(sheet, rownumber) {
-  var columns = sheet.getRange(1,1,1, sheet.getMaxColumns()).getValues()[0];
-  var data = sheet.getDataRange().getValues()[rownumber-1];
-  var dict_data = {};
-  for (var keys in columns) {
-    var key = columns[keys];
-    dict_data[key] = data[keys];
-  }
-  return dict_data;
-}
+// // https://gist.github.com/dangtrinhnt/320e425b26ac3c5ca987
+// function rowToDict(sheet, rownumber) {
+//   var columns = sheet.getRange(1,1,1, sheet.getMaxColumns()).getValues()[0];
+//   var data = sheet.getDataRange().getValues()[rownumber-1];
+//   var dict_data = {};
+//   for (var keys in columns) {
+//     var key = columns[keys];
+//     dict_data[key] = data[keys];
+//   }
+//   return dict_data;
+// }
+
+// function rowsToDict(sheet, beg, end) {
+//   for(var i = beg, l= end +1; i<l ; i++){
+//     // first row is the list of keys
+//     var columns = sheet.getRange(1,1,1, sheet.getMaxColumns()).getValues()[0];
+//     var data = sheet.getDataRange().getValues()[i-1];
+//     var dict_data = {};
+
+
+//     // make a dictionary key the item then everything in this for loop the value
+//     console.log(data[0]);
+//     for (var keys in columns) {
+
+//       var key = columns[keys];
+//       dict_data[key] = data[keys];
+
+//     }
+//   }
+
+//   return dict_data;
+// }
 
 function getInventory(item){
   var jo = {};
