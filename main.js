@@ -8,57 +8,21 @@ function updateUsage(){
   var ss = SpreadsheetApp.openById(SpreadSheetID);
   var inventoryUsage = ss.getSheetByName(SheetNames);
 
-
   usage_array = getInventory(inventoryUsage);
   updated_usage = usage_array;
   
-  // // see 117
-  // usage_dict = rowsToDict(inventoryUsage, 2, 12);
-  // console.log(usage_dict);
-
-
 
 //  /** 
   //just do it all in usage_array and then move usage_array to google sheet
   for (var i=0; i<usage_array.length; i++){
-    // //checking: what is usage_array
-    // console.log('before ' + i);
-    // console.log(usage_array);
-    // console.log(updated_usage);
-
 
     //change new total to total (total will be edited)
     updated_usage[i]['previous'] = usage_array[i]['new'];
     updated_usage[i]['new'] = usage_array[i]['total'];
 
-
-    // use dictionary instead
-    updated_dict = [];
-    updated_dict[usage_array[i]['item']] = [{
-      'previous' : usage_array[i]['new'],
-      'new' : usage_array[i]['total'],
-      },
-    ];
-    
-    // var dict_data = {};
-    // for (var keys in columns) {
-    //   var key = columns[keys];
-    //   dict_data[key] = data[keys];
-    // }
-
-    // //checking that comparison between previous total and new total is working
-    // console.log(usage_array[i]['item']);
-    // console.log('new: ' + usage_array[i]['new']);
-    // console.log('previous: ' + usage_array[i]['previous']);
-
     //if new total has gone down, difference is ADDED to total used, shift new total to previous total
     if (usage_array[i]['new'] < usage_array[i]['previous']){
       updated_usage[i]['usage'] = usage_array[i]['usage'] + (usage_array[i]['previous'] - usage_array[i]['new']);
-
-      updated_dict[usage_array[i]['item']]['usage'] = usage_array[i]['usage'] + (usage_array[i]['previous'] - usage_array[i]['new']);
-      
-      // // do i need this last step??
-      // updated_usage[i]['total'] = getInventory(inventoryUsage)[i]['total'];
     }
 
     else{
@@ -67,9 +31,8 @@ function updateUsage(){
 
     console.log('after');
     console.log(updated_usage);
-    // console.log(updated_dict);
 
-    var headings = ['item', 'total','previous','new', 'usage'];
+    var headings = ['item', 'total','previous', 'new', 'usage'];
     var output = [];
 
     updated_usage.forEach(item => {
@@ -83,18 +46,6 @@ function updateUsage(){
       output.unshift(headings);
       ss.getSheetByName("Sheet1").getRange(1, 1, output.length, output[0].length).setValues(output);
     }
-      
-
-
-    // put updated_usage into google sheet
-    // https://sheetsiq.com/google-sheets/app-script/copy-an-array-into-a-sheet-google-sheet/
-
-
-
-  // trying to set google sheet values to usage_array values
-    // inventoryUsage.getRange(previous_total_range).setValues(usage_array[i]['new']);
-    // inventoryUsage.getRange(previous_total_range).setValues(usage_array[i]['new'])
-    // inventoryUsage.getRange('D'+j+':D'+j).setValues(inventoryUsage.getRange('E'+j+':E'+j).getValues());
 
   }
   //  */
@@ -120,39 +71,6 @@ function updateUsage(){
     }
   }
 }
-
-// // https://gist.github.com/dangtrinhnt/320e425b26ac3c5ca987
-// function rowToDict(sheet, rownumber) {
-//   var columns = sheet.getRange(1,1,1, sheet.getMaxColumns()).getValues()[0];
-//   var data = sheet.getDataRange().getValues()[rownumber-1];
-//   var dict_data = {};
-//   for (var keys in columns) {
-//     var key = columns[keys];
-//     dict_data[key] = data[keys];
-//   }
-//   return dict_data;
-// }
-
-// function rowsToDict(sheet, beg, end) {
-//   for(var i = beg, l= end +1; i<l ; i++){
-//     // first row is the list of keys
-//     var columns = sheet.getRange(1,1,1, sheet.getMaxColumns()).getValues()[0];
-//     var data = sheet.getDataRange().getValues()[i-1];
-//     var dict_data = {};
-
-
-//     // make a dictionary key the item then everything in this for loop the value
-//     console.log(data[0]);
-//     for (var keys in columns) {
-
-//       var key = columns[keys];
-//       dict_data[key] = data[keys];
-
-//     }
-//   }
-
-//   return dict_data;
-// }
 
 function getInventory(item){
   var jo = {};
