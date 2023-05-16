@@ -1,8 +1,6 @@
-var SpreadSheetID = "1YHMh3YT-BcfgtntT1rLHa3f5D-KJDu94ILdy2v2LWaw"
+var SpreadSheetID = "1diGFcUshSjcyVml01cbt5GjsQm9PC0m2YbSFYcdlPa0"
 var SheetNames = ["Sheet1"]
 var EmailSheet = "emails"
-
-// SpreadsheetApp.getActiveSpreadsheet().getRange(range).getValues(values)
 
 function updateUsage(){
   var ss = SpreadsheetApp.openById(SpreadSheetID);
@@ -28,9 +26,6 @@ function updateUsage(){
     else{
       updated_usage[i]['usage'] = usage_array[i]['usage'] + 0;
     }
-
-    console.log('after');
-    console.log(updated_usage);
 
     var headings = ['item', 'total','previous', 'new', 'usage'];
     var output = [];
@@ -64,12 +59,53 @@ function updateUsage(){
   }
 
 // if first of month send email about usage
-  if (now.getDate() == 1){
+  if (now.getDate() == 16){
     // does send as one chunk but UGLY
     for (var j=0; j<email_json.length; j++){
-      MailApp.sendEmail({to: email_json[j].email, subject: "Usage Report " + month + "/" + year, htmlBody: JSON.stringify(updated_usage), noReply:true})
+      MailApp.sendEmail({to: email_json[j].email,
+                         subject: "Usage Report " + month + "/" + year,
+                         htmlBody: printStuff(updated_usage),
+                         noReply:true})
+    }
+
+    // now time for some code duplication
+    for (var i=0; i<usage_array.length; i++){
+      updated_usage[i]['usage'] = 0;
+
+      var headings = ['item', 'total','previous', 'new', 'usage'];
+      var output = [];
+
+      updated_usage.forEach(item => {
+        output.push(headings.map(heading => {
+          return item[heading]
+        }));
+      })
+
+      if (output.length) {
+        // Add the headings - delete this next line if headings not required
+        output.unshift(headings);
+        ss.getSheetByName("Sheet1").getRange(1, 1, output.length, output[0].length).setValues(output);
+      }
+
     }
   }
+}
+
+function printStuff(updated_usage){
+  // newthing = []
+
+  string = "";
+  for (var i=0; i<usage_array.length; i++){
+
+    temp = JSON.stringify(updated_usage[i]['item']) + ": " + JSON.stringify(updated_usage[i]['usage'])+ ",   ";
+    string = string.concat(temp);
+
+
+    // newthing.push(JSON.stringify(updated_usage[i]['item']) + ": " + JSON.stringify(updated_usage[i]['usage']))
+    // console.log(JSON.stringify(updated_usage[i]['item']) + ": " + JSON.stringify(updated_usage[i]['usage']))
+    // console.table(updated_usage, ['item', 'usage']);
+  }
+  return string;
 }
 
 function getInventory(item){
